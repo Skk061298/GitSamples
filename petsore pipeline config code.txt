@@ -1,0 +1,56 @@
+pipeline {
+    agent any
+
+    tools {
+        // Install the Maven version configured as "M3" and add it to the path.
+        maven "MyMaven"
+        jdk "Myjdk"
+        git "MyGit"
+    }
+
+    stages {
+        stage ('PetStore complile') {
+            steps{
+                git credentialsId: '04b96f53-48b6-4588-9c7b-06c695ba5266',
+                url: 'https://github.com/Skk061298/PetStoreWebApp.git'
+                bat "mvn compile "
+            }
+        }
+    
+    stage ('PetStoreBuild') {
+             steps {
+    //             // Get some code from a GitHub repository
+                git credentialsId: '04b96f53-48b6-4588-9c7b-06c695ba5266',
+                 url: 'https://github.com/Skk061298/PetStoreWebApp.git'
+
+    //             // Run Maven on a Unix agent.
+    //             sh "mvn -Dmaven.test.failure.ignore=true clean package"
+
+    //             // To run Maven on a Windows agent, use
+                bat "mvn -Dmaven.test.failure.ignore=true clean package"
+            }
+    
+        post {
+    //             // If Maven was able to run the tests, even if some of the test
+    //             // failed, record the test results and archive the jar file.
+            success {
+                deploy adapters: [tomcat9(alternativeDeploymentContext: '',
+                credentialsId: '9585d6e7-be49-4ab1-aa24-d7b5c38cd01b',
+                path: '',
+                url: 'http://localhost:8080/')],
+                contextPath: 'PetStoreWebApp', 
+                war: '**/*.war'
+            }
+        }
+     }
+    stage ('PetStoreTest') {
+         steps {
+            git credentialsId: '04b96f53-48b6-4588-9c7b-06c695ba5266',
+            url: 'https://github.com/Skk061298/petstoretest.git'
+            
+            bat "mvn test"
+         }
+     }
+    }
+}
+    
